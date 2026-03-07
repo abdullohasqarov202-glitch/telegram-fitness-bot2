@@ -6,32 +6,24 @@ TOKEN = os.getenv("BOT_TOKEN")
 
 ADMIN_USERNAME = "Asqarov_0207"
 
-user_data = {}
+users = {}
 premium_users = set()
 
 main_menu = ReplyKeyboardMarkup([
 ["🏋️ Vazn olish", "🔥 Vazn yo‘qotish"],
-["🍽 Ovqatlanish", "🏋️ Workout"],
-["💎 Premium", "📊 Statistika"]
+["🍽 Ovqatlanish", "💪 Mashqlar"],
+["💎 Premium"]
 ], resize_keyboard=True)
 
-back_menu = ReplyKeyboardMarkup([
-["🔙 Ortga"]
-], resize_keyboard=True)
-
-diet_menu = ReplyKeyboardMarkup([
-["🥗 7 kunlik ovqatlanish"],
-["🔙 Ortga"]
-], resize_keyboard=True)
+back = ReplyKeyboardMarkup([["🔙 Ortga"]], resize_keyboard=True)
 
 workout_menu = ReplyKeyboardMarkup([
-["💪 Kunlik workout", "📅 7 kunlik workout"],
+["💪 Kunlik mashq", "📅 7 kunlik mashq"],
 ["🔙 Ortga"]
 ], resize_keyboard=True)
 
 premium_menu = ReplyKeyboardMarkup([
-["🥗 30 kunlik dieta"],
-["🔥 Premium workout"],
+["🥗 30 kunlik dieta", "🔥 Premium mashqlar"],
 ["🔙 Ortga"]
 ], resize_keyboard=True)
 
@@ -41,14 +33,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 """
 👋 Salom!
 
-Bu Fitness bot sizga yordam beradi:
+Bu fitness bot sizga yordam beradi:
 
 🏋️ Vazn olish
 🔥 Vazn yo‘qotish
 🍽 Ovqatlanish rejasi
-💪 Workout mashqlari
+💪 Mashq dasturlari
 
-Boshlash uchun menyudan tanlang 👇
+Boshlash uchun tanlang 👇
 """,
 reply_markup=main_menu
 )
@@ -63,152 +55,135 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Bosh menyu", reply_markup=main_menu)
 
     elif text == "🏋️ Vazn olish":
-        user_data[user_id] = {"goal":"gain"}
-        await update.message.reply_text("⚖️ Vazningiz nechchi kg?", reply_markup=back_menu)
+        users[user_id] = {"goal":"gain"}
+        await update.message.reply_text("⚖️ Vazningiz (kg)?", reply_markup=back)
 
     elif text == "🔥 Vazn yo‘qotish":
-        user_data[user_id] = {"goal":"lose"}
-        await update.message.reply_text("⚖️ Hozir vazningiz nechchi kg?", reply_markup=back_menu)
+        users[user_id] = {"goal":"lose"}
+        await update.message.reply_text("⚖️ Hozir vazningiz (kg)?", reply_markup=back)
 
-    elif user_id in user_data and "weight" not in user_data[user_id]:
+    elif user_id in users and "weight" not in users[user_id]:
 
-        user_data[user_id]["weight"] = float(text)
-        await update.message.reply_text("📏 Bo‘yingiz nechchi sm?")
+        users[user_id]["weight"] = float(text)
+        await update.message.reply_text("📏 Bo‘yingiz (sm)?")
 
-    elif user_id in user_data and "height" not in user_data[user_id]:
+    elif user_id in users and "height" not in users[user_id]:
 
-        user_data[user_id]["height"] = float(text)
-        await update.message.reply_text("🎂 Yoshingiz nechchi?")
+        users[user_id]["height"] = float(text)
+        await update.message.reply_text("🎂 Yoshingiz?")
 
-    elif user_id in user_data and "age" not in user_data[user_id]:
+    elif user_id in users and "age" not in users[user_id]:
 
         age = int(text)
-        weight = user_data[user_id]["weight"]
-        height = user_data[user_id]["height"]
+        weight = users[user_id]["weight"]
+        height = users[user_id]["height"]
 
         calories = 10*weight + 6.25*height - 5*age + 5
 
-        if user_data[user_id]["goal"] == "gain":
+        if users[user_id]["goal"] == "gain":
             calories += 400
         else:
             calories -= 400
 
+        users[user_id]["cal"] = int(calories)
+
         await update.message.reply_text(
+
 f"""
 📊 Sizga kerakli kunlik kaloriya:
 
 🔥 {int(calories)} kcal
 
-Shu kaloriyani iste'mol qilsangiz maqsadingizga erishasiz.
+Quyida siz uchun kunlik ovqatlanish 👇
+"""
+)
+
+        await update.message.reply_text(
+
+"""
+🍽 KUNLIK OVQATLANISH
+
+🍳 Nonushta
+• 3 ta tuxum
+• suli bo‘tqasi
+• 1 ta banan
+
+🍗 Tushlik
+• tovuq go‘shti
+• guruch
+• sabzavot salati
+
+🥗 Kechki ovqat
+• baliq yoki tovuq
+• sabzavot
+
+🥜 Tamaddi
+• yong‘oq
+• yogurt
+
+💧 Kuniga 2-3 litr suv iching
 """,
 reply_markup=main_menu
 )
 
-    elif text == "🍽 Ovqatlanish":
-        await update.message.reply_text(
-"🥗 Ovqatlanish bo‘limi",
-reply_markup=diet_menu
-)
-
-    elif text == "🥗 7 kunlik ovqatlanish":
+    elif text == "💪 Mashqlar":
 
         await update.message.reply_text(
-"""
-🥗 7 KUNLIK OVQATLANISH
-
-1-kun
-🍳 3 tuxum
-🍗 Tovuq + guruch
-🥗 Salat
-
-2-kun
-🥣 Suli
-🍖 Go‘sht
-🥗 Sabzavot
-
-3-kun
-🥚 2 tuxum
-🍗 Tovuq
-🥗 Salat
-
-4-kun
-🥣 Suli
-🍖 Go‘sht
-🥗 Sabzavot
-
-5-kun
-🥚 3 tuxum
-🍗 Tovuq
-🥗 Salat
-
-6-kun
-🥣 Suli
-🍖 Go‘sht
-🥗 Sabzavot
-
-7-kun
-🥚 Tuxum
-🍗 Tovuq
-🥗 Salat
-
-💧 Kuniga 2-3 litr suv iching
-"""
-)
-
-    elif text == "🏋️ Workout":
-
-        await update.message.reply_text(
-"💪 Workout bo‘limi",
+"💪 Mashqlar bo‘limi",
 reply_markup=workout_menu
 )
 
-    elif text == "💪 Kunlik workout":
+    elif text == "💪 Kunlik mashq":
 
         await update.message.reply_text(
 """
-💪 BUGUNGI WORKOUT
+💪 BUGUNGI MASHQLAR
 
-1️⃣ O‘tirib turish (Squat) — 15 x 3
-2️⃣ Push-up — 12 x 3
-3️⃣ Press — 20 x 3
-4️⃣ Turnik — 8 x 3
-5️⃣ Plank — 60 soniya
+1️⃣ O‘tirib turish — 15 marta × 3
 
-🔥 Mashqdan oldin 5 minut razminka qiling
+2️⃣ Anjimanya — 12 marta × 3
+
+3️⃣ Qorin mashqi — 20 marta × 3
+
+4️⃣ Turnikda tortilish — 8 marta × 3
+
+5️⃣ Planka — 60 soniya
+
+🔥 Mashqdan oldin 5 minut badanni qizdirish qiling
 """
 )
 
-    elif text == "📅 7 kunlik workout":
+    elif text == "📅 7 kunlik mashq":
 
         await update.message.reply_text(
 """
-📅 7 KUNLIK WORKOUT
+📅 7 KUNLIK MASHQ DASTURI
 
 1-kun
-Push-up
-Press
+• Qo‘l mashqlari
+• Qorin mashqi
 
 2-kun
-Squat
-Plank
+• O‘tirib turish
+• Yugurish
 
 3-kun
-Turnik
-Press
+• Turnik
+• Qorin mashqi
 
 4-kun
-Dam olish
+• Dam olish
 
 5-kun
-Push-up
-Squat
+• O‘tirib turish
+• Qo‘l mashqlari
 
 6-kun
-Press
-Plank
+• Yugurish
+• Qorin mashqi
 
 7-kun
-Yengil yugurish
+• Yengil mashqlar
 """
 )
 
@@ -219,8 +194,6 @@ Yengil yugurish
             await update.message.reply_text(
 """
 💎 PREMIUM BO‘LIM
-
-Maxsus fitness dasturlari
 """,
 reply_markup=premium_menu
 )
@@ -231,7 +204,7 @@ reply_markup=premium_menu
 f"""
 ❌ Bu premium bo‘lim
 
-💰 Narx: 20 000 so‘m / oy
+💰 Narxi: 20 000 so‘m / oy
 
 Premium olish uchun yozing:
 @{ADMIN_USERNAME}
@@ -249,68 +222,50 @@ Premium olish uchun yozing:
 Har kuni:
 
 🍳 Nonushta
-- tuxum
-- suli
-- banan
+tuxum + suli
 
 🍗 Tushlik
-- tovuq
-- guruch
-- sabzavot
+tovuq + guruch
 
 🥗 Kechki
-- salat
-- baliq
+salat + baliq
 
 💧 3 litr suv
 """
 )
 
-    elif text == "🔥 Premium workout":
+    elif text == "🔥 Premium mashqlar":
 
         if user_id in premium_users:
 
             await update.message.reply_text(
 """
-🔥 PREMIUM WORKOUT
+🔥 PREMIUM MASHQLAR
 
-1️⃣ Push-up — 20x4
-2️⃣ Squat — 25x4
-3️⃣ Turnik — 12x4
-4️⃣ Press — 30x4
-5️⃣ Plank — 90s
+1️⃣ O‘tirib turish — 25 × 4
 
-Haftasiga 5 kun
+2️⃣ Anjimanya — 20 × 4
+
+3️⃣ Turnik — 12 × 4
+
+4️⃣ Qorin mashqi — 30 × 4
+
+5️⃣ Planka — 90 soniya
+
+Haftasiga 5 kun bajaring
 """
 )
-
-    elif text == "📊 Statistika":
-
-        if user.username == ADMIN_USERNAME:
-
-            await update.message.reply_text(
-f"""
-📊 BOT STATISTIKASI
-
-👤 Foydalanuvchilar: {len(user_data)}
-💎 Premium: {len(premium_users)}
-"""
-)
-
-        else:
-            await update.message.reply_text("❌ Bu admin bo‘lim")
 
 async def premium(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if update.message.from_user.username == ADMIN_USERNAME:
 
         try:
+
             user_id = int(context.args[0])
             premium_users.add(user_id)
 
-            await update.message.reply_text(
-f"✅ {user_id} ga premium berildi"
-)
+            await update.message.reply_text("✅ Premium berildi")
 
         except:
             await update.message.reply_text("User ID yozing")
