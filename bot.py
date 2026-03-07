@@ -2,7 +2,7 @@ import os
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
-TOKEN = "BOT_TOKENINGIZ"
+TOKEN = "BOT_TOKEN"
 
 ADMIN_USERNAME = "Asqarov_0207"
 
