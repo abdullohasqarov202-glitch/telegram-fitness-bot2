@@ -1,181 +1,314 @@
 import os
-import json
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
 TOKEN = os.getenv("BOT_TOKEN")
+
 ADMIN = "Asqarov_0207"
-USERS_FILE = "users.json"
 
-def load_users():
-    try:
-        with open(USERS_FILE, "r") as f:
-            return set(json.load(f))
-    except:
-        return set()
+users = {}
+premium_users = set()
+weights = {}
 
-def save_users(users):
-    with open(USERS_FILE, "w") as f:
-        json.dump(list(users), f)
+menu = [
+["🏋️ Vazn olish","🔥 Vazn yo‘qotish"],
+["📊 BMI hisoblash","⚖️ Vazn yozish"],
+["📅 7 kunlik ovqat","🏋️ Workout"],
+["💎 Premium dieta"]
+]
 
-users = load_users()
-user_data = {}
+keyboard = ReplyKeyboardMarkup(menu, resize_keyboard=True)
 
+# START
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user = update.message.from_user
-    users.add(user.id)
-    save_users(users)
-
-    buttons = [["🏋️ Vazn olish", "🔥 Vazn yo‘qotish"]]
-    keyboard = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+    users[user.id] = {"step":"menu"}
 
     await update.message.reply_text(
-        "Salom 👋\nMaqsadingizni tanlang:",
-        reply_markup=keyboard
-    )
 
-async def users_count(update: Update, context: ContextTypes.DEFAULT_TYPE):
+"💪 FITNESS BOT\n"
+"━━━━━━━━━━━━━━\n"
+"Sog‘lom hayot uchun yordamchi bot\n\n"
 
-    if update.message.from_user.username != ADMIN:
-        return
+"Bot sizga yordam beradi:\n"
+"🥗 dieta\n"
+"📊 BMI\n"
+"🏋️ workout\n"
+"⚖️ vazn nazorat\n\n"
 
-    await update.message.reply_text(f"👥 Bot userlari: {len(users)}")
+"Kerakli menyuni tanlang 👇",
 
-async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
+reply_markup=keyboard
+)
 
-    if update.message.from_user.username != ADMIN:
-        return
-
-    text = update.message.text.replace("/send ", "")
-
-    for user_id in users:
-        try:
-            await context.bot.send_message(user_id, text)
-        except:
-            pass
-
-    await update.message.reply_text("Xabar yuborildi ✅")
-
+# MESSAGE
 async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    user_id = update.message.from_user.id
+    user = update.message.from_user
     text = update.message.text
 
+    if user.id not in users:
+        users[user.id]={"step":"menu"}
+
+    step = users[user.id]["step"]
+
+# VAZN OLISH
     if text == "🏋️ Vazn olish":
 
-        user_data[user_id] = {"goal": "gain"}
-
-        buttons = [["👨 Erkak", "👩 Ayol"]]
-        keyboard = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+        users[user.id]["goal"]="gain"
+        users[user.id]["step"]="weight"
 
         await update.message.reply_text(
-            "Jinsingizni tanlang:",
-            reply_markup=keyboard
-        )
+"⚖️ Vazningiz nechchi kg?"
+)
 
+# OZISH
     elif text == "🔥 Vazn yo‘qotish":
 
-        user_data[user_id] = {"goal": "lose"}
-
-        buttons = [["👨 Erkak", "👩 Ayol"]]
-        keyboard = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+        users[user.id]["goal"]="lose"
+        users[user.id]["step"]="weight"
 
         await update.message.reply_text(
-            "Jinsingizni tanlang:",
-            reply_markup=keyboard
-        )
+"⚖️ Hozir vazningiz nechchi kg?"
+)
 
-    elif text in ["👨 Erkak", "👩 Ayol"]:
+# VAZN
+    elif step == "weight":
 
-        user_data[user_id]["gender"] = text
+        users[user.id]["weight"]=float(text)
+        users[user.id]["step"]="height"
 
-        await update.message.reply_text("Vazningiz nechchi kg?")
+        await update.message.reply_text(
+"📏 Bo‘yingiz nechchi sm?"
+)
 
-    elif user_id in user_data and "weight" not in user_data[user_id]:
+# BOY
+    elif step == "height":
 
-        user_data[user_id]["weight"] = float(text)
+        users[user.id]["height"]=float(text)
+        users[user.id]["step"]="age"
 
-        await update.message.reply_text("Yoshingiz nechchi?")
+        await update.message.reply_text(
+"🎂 Yoshingiz nechchi?"
+)
 
-    elif user_id in user_data and "age" not in user_data[user_id]:
+# AGE
+    elif step == "age":
 
-        user_data[user_id]["age"] = int(text)
+        users[user.id]["age"]=int(text)
 
-        await update.message.reply_text("Bo‘yingiz nechchi cm?")
+        weight=users[user.id]["weight"]
+        height=users[user.id]["height"]/100
 
-    elif user_id in user_data and "height" not in user_data[user_id]:
+        bmi=weight/(height*height)
+        water=weight*0.035
 
-        weight = user_data[user_id]["weight"]
-        age = user_data[user_id]["age"]
-        height = float(text)
-        gender = user_data[user_id]["gender"]
+        await update.message.reply_text(
 
-        height_m = height / 100
+f"📊 Sizning BMI: {round(bmi,1)}\n"
+f"💧 Kunlik suv: {round(water,1)} L\n\n"
 
-        bmi = weight / (height_m ** 2)
+)
 
-        if gender == "👨 Erkak":
-            calories = 10*weight + 6.25*height - 5*age + 5
+        if users[user.id]["goal"]=="gain":
+
+            await update.message.reply_text(
+
+"🏋️ VAZN OLISH DIETA\n\n"
+
+"🍳 Nonushta\n"
+"Tuxum + suli + banan\n\n"
+
+"🍗 Tushlik\n"
+"Guruch + tovuq + salat\n\n"
+
+"🥩 Kechki ovqat\n"
+"Go‘sht + kartoshka\n\n"
+
+"🥜 Snack\n"
+"Yong‘oq + yogurt"
+
+)
+
         else:
-            calories = 10*weight + 6.25*height - 5*age - 161
-
-        water = weight * 0.035
-
-        await update.message.reply_text(
-            f"📊 BMI: {bmi:.1f}\n"
-            f"🔥 Kunlik kaloriya: {int(calories)} kcal\n"
-            f"💧 Kunlik suv normasi: {water:.1f} litr"
-        )
-
-        goal = user_data[user_id]["goal"]
-
-        if goal == "gain":
 
             await update.message.reply_text(
-                "💪 7 kunlik vazn olish dietasi:\n\n"
-                "1-kun: tuxum, suli, guruch, tovuq\n"
-                "2-kun: tuxum, makaron, mol go‘shti\n"
-                "3-kun: suli, guruch, baliq\n"
-                "4-kun: tuxum, kartoshka, tovuq\n"
-                "5-kun: guruch, mol go‘shti, yogurt\n"
-                "6-kun: suli, banan, baliq\n"
-                "7-kun: tuxum, makaron, tovuq"
-            )
 
-        if goal == "lose":
+"🔥 VAZN TASHLASH DIETA\n\n"
 
-            await update.message.reply_text(
-                "🔥 7 kunlik ozish dietasi:\n\n"
-                "1-kun: tuxum, sabzavot, salat\n"
-                "2-kun: tovuq, sabzavot\n"
-                "3-kun: baliq, bodring\n"
-                "4-kun: tuxum, sabzavot\n"
-                "5-kun: tovuq, salat\n"
-                "6-kun: baliq, sabzavot\n"
-                "7-kun: tuxum, salat"
-            )
+"🍳 Nonushta\n"
+"2 tuxum + sabzavot\n\n"
+
+"🥗 Tushlik\n"
+"Tovuq + salat\n\n"
+
+"🐟 Kechki ovqat\n"
+"Baliq + sabzavot\n\n"
+
+"🍏 Snack\n"
+"Olma"
+
+)
+
+        users[user.id]["step"]="menu"
+
+# BMI
+    elif text == "📊 BMI hisoblash":
+
+        users[user.id]["step"]="bmi_weight"
 
         await update.message.reply_text(
-            "🏋️ 7 kunlik mashq rejasi:\n\n"
-            "1-kun: Ko‘krak mashqlari\n"
-            "2-kun: Oyoq mashqlari\n"
-            "3-kun: Dam olish\n"
-            "4-kun: Yelka mashqlari\n"
-            "5-kun: Qo‘l mashqlari\n"
-            "6-kun: Cardio\n"
-            "7-kun: Dam olish"
-        )
+"⚖️ Vazningiz nechchi kg?"
+)
 
-    else:
+    elif step == "bmi_weight":
 
-        await update.message.reply_text("Iltimos /start bosing")
+        users[user.id]["bmi_w"]=float(text)
+        users[user.id]["step"]="bmi_height"
+
+        await update.message.reply_text(
+"📏 Bo‘yingiz nechchi sm?"
+)
+
+    elif step == "bmi_height":
+
+        w=users[user.id]["bmi_w"]
+        h=float(text)/100
+
+        bmi=w/(h*h)
+
+        await update.message.reply_text(
+f"📊 BMI: {round(bmi,1)}"
+)
+
+        users[user.id]["step"]="menu"
+
+# VAZN YOZISH
+    elif text == "⚖️ Vazn yozish":
+
+        users[user.id]["step"]="save_weight"
+
+        await update.message.reply_text(
+"Bugungi vazningiz nechchi kg?"
+)
+
+    elif step == "save_weight":
+
+        weights[user.id]=text
+
+        await update.message.reply_text(
+f"✅ Vazn saqlandi: {text} kg"
+)
+
+        users[user.id]["step"]="menu"
+
+# 7 KUNLIK OVQAT
+    elif text == "📅 7 kunlik ovqat":
+
+        await update.message.reply_text(
+
+"📅 7 KUNLIK OVQAT\n\n"
+
+"1️⃣ Tuxum + suli\n"
+"2️⃣ Tovuq + guruch\n"
+"3️⃣ Go‘sht + sabzavot\n"
+"4️⃣ Tuxum + non\n"
+"5️⃣ Tovuq + makaron\n"
+"6️⃣ Go‘sht + kartoshka\n"
+"7️⃣ Baliq + salat"
+
+)
+
+# WORKOUT
+    elif text == "🏋️ Workout":
+
+        await update.message.reply_text(
+
+"🏋️ HAFTALIK WORKOUT\n\n"
+
+"1️⃣ Push-up 20\n"
+"2️⃣ Squat 30\n"
+"3️⃣ Plank 30 sec\n"
+"4️⃣ Running 10 min"
+
+)
+
+# PREMIUM
+    elif text == "💎 Premium dieta":
+
+        if user.id in premium_users:
+
+            await update.message.reply_text(
+
+"💎 PREMIUM DIETA\n\n"
+
+"🥗 30 kunlik maxsus dieta\n\n"
+
+"🍳 Nonushta\n"
+"Tuxum + suli + meva\n\n"
+
+"🍗 Tushlik\n"
+"Guruch + tovuq\n\n"
+
+"🥩 Kechki ovqat\n"
+"Go‘sht + sabzavot\n\n"
+
+"💧 Kuniga 3L suv\n"
+"🏋️ Haftasiga 4 workout"
+
+)
+
+        else:
+
+            await update.message.reply_text(
+
+"❌ Bu premium bo‘lim\n\n"
+
+"💰 Narx: 20 000 so‘m / oy\n\n"
+
+"Premium olish uchun\n"
+"@Asqarov_0207"
+
+)
+
+# ADMIN PREMIUM
+async def premium(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    if update.message.from_user.username==ADMIN:
+
+        user_id=int(context.args[0])
+        premium_users.add(user_id)
+
+        await update.message.reply_text("✅ Premium berildi")
+
+# ADMIN STATS
+async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    if update.message.from_user.username==ADMIN:
+
+        await update.message.reply_text(
+
+f"📊 BOT STATISTIKA\n\n"
+f"👤 Userlar: {len(users)}\n"
+f"💎 Premium: {len(premium_users)}\n"
+f"⚖️ Vazn yozganlar: {len(weights)}"
+
+)
+
+# ID
+async def myid(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    await update.message.reply_text(
+f"Sizning ID: {update.message.from_user.id}"
+)
 
 app = ApplicationBuilder().token(TOKEN).build()
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("users", users_count))
-app.add_handler(CommandHandler("send", broadcast))
-app.add_handler(MessageHandler(filters.TEXT, message))
+app.add_handler(CommandHandler("start",start))
+app.add_handler(CommandHandler("stats",stats))
+app.add_handler(CommandHandler("premium",premium))
+app.add_handler(CommandHandler("id",myid))
+app.add_handler(MessageHandler(filters.TEXT,message))
 
 app.run_polling()
