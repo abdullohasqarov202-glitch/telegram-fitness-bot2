@@ -1,84 +1,141 @@
-import telebot
-from telebot import types
+import os
+from telegram import Update, ReplyKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
-TOKEN = "BOT_TOKEN"
-bot = telebot.TeleBot(TOKEN)
+TOKEN = os.getenv("BOT_TOKEN")
 
 ADMIN_USERNAME = "Asqarov_0207"
 
-users = set()
-state = {}
+users = {}
+premium_users = set()
 
-# START
-@bot.message_handler(commands=['start'])
-def start(message):
+def is_number(text):
+    try:
+        float(text)
+        return True
+    except:
+        return False
 
-    users.add(message.chat.id)
+main_menu = ReplyKeyboardMarkup([
+["🏋️ Vazn olish", "🔥 Vazn yo‘qotish"],
+["🍽 Ovqatlanish", "💪 Mashqlar"],
+["💎 Premium"]
+], resize_keyboard=True)
 
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add("🔥 Vazn yo'qotish")
-    markup.add("🍽 Ovqatlanish", "💪 Mashqlar")
+back_menu = ReplyKeyboardMarkup([
+["🔙 Ortga"]
+], resize_keyboard=True)
 
-    bot.send_message(
-        message.chat.id,
-        "👋 MYFIT BOT ga xush kelibsiz\nKerakli bo‘limni tanlang:",
-        reply_markup=markup
-    )
+workout_menu = ReplyKeyboardMarkup([
+["💪 Kunlik mashq", "📅 7 kunlik mashq"],
+["🔙 Ortga"]
+], resize_keyboard=True)
 
-
-# VAZN YO'QOTISH
-@bot.message_handler(func=lambda m: m.text == "🔥 Vazn yo'qotish")
-def ask_weight(message):
-
-    state[message.chat.id] = "weight"
-
-    bot.send_message(
-        message.chat.id,
-        "⚖ Hozir vazningiz nechchi kg?"
-    )
-
-
-# VAZN QABUL QILISH
-@bot.message_handler(func=lambda m: state.get(m.chat.id) == "weight")
-def get_weight(message):
-
-    if message.text.isdigit():
-
-        weight = int(message.text)
-        calories = weight * 24
-
-        bot.send_message(
-            message.chat.id,
-            f"✅ Vazningiz: {weight} kg\n"
-            f"🔥 Kunlik taxminiy kaloriya: {calories} kcal"
-        )
-
-        state[message.chat.id] = None
-
-    else:
-
-        bot.send_message(
-            message.chat.id,
-            "❌ Vaznni raqam bilan yozing\nMasalan: 70"
-        )
+premium_menu = ReplyKeyboardMarkup([
+["🥗 30 kunlik dieta", "🔥 Premium mashqlar"],
+["🔙 Ortga"]
+], resize_keyboard=True)
 
 
-# OVQATLANISH
-@bot.message_handler(func=lambda m: m.text == "🍽 Ovqatlanish")
-def food(message):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    text = """
-🍽 Kunlik ovqatlanish
+    await update.message.reply_text(
+"""
+👋 Salom!
 
-🥞 Nonushta
-• 3 tuxum
+Bu fitness bot sizga yordam beradi:
+
+🏋️ Vazn olish
+🔥 Vazn yo‘qotish
+🍽 Ovqatlanish rejasi
+💪 Mashq dasturlari
+
+Boshlash uchun tanlang 👇
+""",
+reply_markup=main_menu
+)
+
+
+async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    user = update.message.from_user
+    text = update.message.text
+    user_id = user.id
+
+    if text == "🔙 Ortga":
+        await update.message.reply_text("Bosh menyu", reply_markup=main_menu)
+
+
+    elif text == "🏋️ Vazn olish":
+        users[user_id] = {"goal":"gain"}
+        await update.message.reply_text("⚖️ Vazningiz nechchi kg?", reply_markup=back_menu)
+
+
+    elif text == "🔥 Vazn yo‘qotish":
+        users[user_id] = {"goal":"lose"}
+        await update.message.reply_text("⚖️ Hozir vazningiz nechchi kg?", reply_markup=back_menu)
+
+
+    elif user_id in users and "weight" not in users[user_id]:
+
+        if not is_number(text):
+            await update.message.reply_text("❌ Vaznni raqam bilan yozing\nMasalan: 70")
+            return
+
+        users[user_id]["weight"] = float(text)
+        await update.message.reply_text("📏 Bo‘yingiz nechchi sm?")
+
+
+    elif user_id in users and "height" not in users[user_id]:
+
+        if not is_number(text):
+            await update.message.reply_text("❌ Bo‘yni raqam bilan yozing\nMasalan: 175")
+            return
+
+        users[user_id]["height"] = float(text)
+        await update.message.reply_text("🎂 Yoshingiz nechchi?")
+
+
+    elif user_id in users and "age" not in users[user_id]:
+
+        if not text.isdigit():
+            await update.message.reply_text("❌ Yoshni raqam bilan yozing\nMasalan: 20")
+            return
+
+        age = int(text)
+        weight = users[user_id]["weight"]
+        height = users[user_id]["height"]
+
+        calories = 10*weight + 6.25*height - 5*age + 5
+
+        if users[user_id]["goal"] == "gain":
+            calories += 400
+        else:
+            calories -= 400
+
+        await update.message.reply_text(
+
+f"""
+📊 Sizga kerakli kunlik kaloriya:
+
+🔥 {int(calories)} kcal
+"""
+)
+
+        await update.message.reply_text(
+
+"""
+🍽 KUNLIK OVQATLANISH
+
+🍳 Nonushta
+• 3 ta tuxum
 • suli bo‘tqasi
-• banan
+• 1 ta banan
 
 🍗 Tushlik
 • tovuq go‘shti
 • guruch
-• sabzavot salati
+• sabzavot
 
 🥗 Kechki ovqat
 • baliq yoki tovuq
@@ -88,76 +145,163 @@ def food(message):
 • yong‘oq yoki yogurt
 
 💧 Kuniga 2-3 litr suv iching
+""",
+reply_markup=main_menu
+)
+
+
+    elif text == "💪 Mashqlar":
+
+        await update.message.reply_text(
+"💪 Mashqlar bo‘limi",
+reply_markup=workout_menu
+)
+
+
+    elif text == "💪 Kunlik mashq":
+
+        await update.message.reply_text(
 """
+💪 BUGUNGI MASHQLAR
 
-    bot.send_message(message.chat.id, text)
+1️⃣ O‘tirib turish — 15 × 3
 
+2️⃣ Qo‘l bilan yerga tayangan holda ko‘tarilish — 12 × 3
 
-# MASHQLAR
-@bot.message_handler(func=lambda m: m.text == "💪 Mashqlar")
-def workout(message):
+3️⃣ Qorin mashqi — 20 × 3
 
-    text = """
-💪 Kunlik workout
+4️⃣ Turnikda tortilish — 8 × 3
 
-1️⃣ O‘tirib turish — 3x15
-2️⃣ Otjimaniya — 3x10
-3️⃣ Press — 3x20
-4️⃣ Plank — 30 soniya x3
-5️⃣ Yugurish — 10 daqiqa
+5️⃣ Planka — 60 soniya
 
-🔥 Har kuni bajaring!
+🔥 Mashqdan oldin badanni qizdirish qiling
 """
-
-    bot.send_message(message.chat.id, text)
-
-
-# ADMIN PANEL
-@bot.message_handler(commands=['admin'])
-def admin_panel(message):
-
-    if message.from_user.username == ADMIN_USERNAME:
-
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        markup.add("📢 Xabar yuborish")
-
-        bot.send_message(
-            message.chat.id,
-            "👑 Admin panel",
-            reply_markup=markup
-        )
+)
 
 
-# XABAR YUBORISH BOSHLASH
-@bot.message_handler(func=lambda m: m.text == "📢 Xabar yuborish")
-def broadcast_start(message):
+    elif text == "📅 7 kunlik mashq":
 
-    if message.from_user.username == ADMIN_USERNAME:
+        await update.message.reply_text(
+"""
+📅 7 KUNLIK MASHQ
 
-        state[message.chat.id] = "broadcast"
+1-kun
+Qo‘l mashqlari
+Qorin mashqi
 
-        bot.send_message(
-            message.chat.id,
-            "📨 Hamma userlarga yuboriladigan xabarni yozing"
-        )
+2-kun
+O‘tirib turish
+Yugurish
+
+3-kun
+Turnik
+Qorin mashqi
+
+4-kun
+Dam olish
+
+5-kun
+O‘tirib turish
+Qo‘l mashqlari
+
+6-kun
+Yugurish
+Qorin mashqi
+
+7-kun
+Yengil mashqlar
+"""
+)
 
 
-# XABAR YUBORISH
-@bot.message_handler(func=lambda m: state.get(m.chat.id) == "broadcast")
-def broadcast_send(message):
+    elif text == "💎 Premium":
 
-    if message.from_user.username == ADMIN_USERNAME:
+        if user_id in premium_users:
 
-        for user in users:
-            try:
-                bot.send_message(user, message.text)
-            except:
-                pass
+            await update.message.reply_text(
+"💎 Premium bo‘lim",
+reply_markup=premium_menu
+)
 
-        bot.send_message(message.chat.id, "✅ Xabar hammaga yuborildi")
+        else:
 
-        state[message.chat.id] = None
+            await update.message.reply_text(
+f"""
+❌ Bu premium bo‘lim
+
+💰 Narx: 20 000 so‘m / oy
+
+Premium olish uchun yozing:
+@{ADMIN_USERNAME}
+"""
+)
 
 
-print("Bot ishga tushdi...")
-bot.infinity_polling()
+    elif text == "🥗 30 kunlik dieta":
+
+        if user_id in premium_users:
+
+            await update.message.reply_text(
+"""
+🥗 30 KUNLIK DIETA
+
+Har kuni:
+
+🍳 Nonushta
+tuxum + suli
+
+🍗 Tushlik
+tovuq + guruch
+
+🥗 Kechki
+salat + baliq
+
+💧 3 litr suv
+"""
+)
+
+
+    elif text == "🔥 Premium mashqlar":
+
+        if user_id in premium_users:
+
+            await update.message.reply_text(
+"""
+🔥 PREMIUM MASHQLAR
+
+1️⃣ O‘tirib turish — 25 × 4
+
+2️⃣ Qo‘l bilan ko‘tarilish — 20 × 4
+
+3️⃣ Turnik — 12 × 4
+
+4️⃣ Qorin mashqi — 30 × 4
+
+5️⃣ Planka — 90 soniya
+"""
+)
+
+
+async def premium(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    if update.message.from_user.username == ADMIN_USERNAME:
+
+        try:
+
+            user_id = int(context.args[0])
+            premium_users.add(user_id)
+
+            await update.message.reply_text("✅ Premium berildi")
+
+        except:
+
+            await update.message.reply_text("User ID yozing")
+
+
+app = ApplicationBuilder().token(TOKEN).build()
+
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("premium", premium))
+app.add_handler(MessageHandler(filters.TEXT, message))
+
+app.run_polling()
