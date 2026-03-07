@@ -9,6 +9,7 @@ ADMIN_USERNAME = "Asqarov_0207"
 users = {}
 premium_users = set()
 
+
 def is_number(text):
     try:
         float(text)
@@ -16,15 +17,14 @@ def is_number(text):
     except:
         return False
 
+
 main_menu = ReplyKeyboardMarkup([
 ["🏋️ Vazn olish", "🔥 Vazn yo‘qotish"],
 ["🍽 Ovqatlanish", "💪 Mashqlar"],
 ["💎 Premium"]
 ], resize_keyboard=True)
 
-back_menu = ReplyKeyboardMarkup([
-["🔙 Ortga"]
-], resize_keyboard=True)
+back_menu = ReplyKeyboardMarkup([["🔙 Ortga"]], resize_keyboard=True)
 
 workout_menu = ReplyKeyboardMarkup([
 ["💪 Kunlik mashq", "📅 7 kunlik mashq"],
@@ -38,6 +38,9 @@ premium_menu = ReplyKeyboardMarkup([
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    user_id = update.message.from_user.id
+    users[user_id] = {}
 
     await update.message.reply_text(
 """
@@ -62,7 +65,15 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     user_id = user.id
 
+    if user_id not in users:
+        users[user_id] = {}
+
+    # Agar boshqa menyu bosilsa vazn jarayonini tozalash
+    if text in ["💪 Mashqlar","🍽 Ovqatlanish","💎 Premium","💪 Kunlik mashq","📅 7 kunlik mashq"]:
+        users[user_id] = {}
+
     if text == "🔙 Ortga":
+        users[user_id] = {}
         await update.message.reply_text("Bosh menyu", reply_markup=main_menu)
 
 
@@ -114,7 +125,6 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             calories -= 400
 
         await update.message.reply_text(
-
 f"""
 📊 Sizga kerakli kunlik kaloriya:
 
@@ -123,7 +133,6 @@ f"""
 )
 
         await update.message.reply_text(
-
 """
 🍽 KUNLIK OVQATLANISH
 
@@ -149,13 +158,30 @@ f"""
 reply_markup=main_menu
 )
 
+        users[user_id] = {}
+
+
+    elif text == "🍽 Ovqatlanish":
+
+        await update.message.reply_text(
+"""
+🍽 SOG‘LOM OVQATLANISH
+
+🍳 Nonushta
+tuxum + suli + meva
+
+🍗 Tushlik
+tovuq + guruch + sabzavot
+
+🥗 Kechki ovqat
+baliq + salat
+"""
+)
+
 
     elif text == "💪 Mashqlar":
 
-        await update.message.reply_text(
-"💪 Mashqlar bo‘limi",
-reply_markup=workout_menu
-)
+        await update.message.reply_text("💪 Mashqlar bo‘limi", reply_markup=workout_menu)
 
 
     elif text == "💪 Kunlik mashq":
@@ -165,16 +191,10 @@ reply_markup=workout_menu
 💪 BUGUNGI MASHQLAR
 
 1️⃣ O‘tirib turish — 15 × 3
-
-2️⃣ Qo‘l bilan yerga tayangan holda ko‘tarilish — 12 × 3
-
+2️⃣ Push-up — 12 × 3
 3️⃣ Qorin mashqi — 20 × 3
-
-4️⃣ Turnikda tortilish — 8 × 3
-
-5️⃣ Planka — 60 soniya
-
-🔥 Mashqdan oldin badanni qizdirish qiling
+4️⃣ Turnik — 8 × 3
+5️⃣ Plank — 60 soniya
 """
 )
 
@@ -185,31 +205,13 @@ reply_markup=workout_menu
 """
 📅 7 KUNLIK MASHQ
 
-1-kun
-Qo‘l mashqlari
-Qorin mashqi
-
-2-kun
-O‘tirib turish
-Yugurish
-
-3-kun
-Turnik
-Qorin mashqi
-
-4-kun
-Dam olish
-
-5-kun
-O‘tirib turish
-Qo‘l mashqlari
-
-6-kun
-Yugurish
-Qorin mashqi
-
-7-kun
-Yengil mashqlar
+1-kun – Qo‘l
+2-kun – Oyoq
+3-kun – Qorin
+4-kun – Dam
+5-kun – Ko‘krak
+6-kun – Kardio
+7-kun – Yengil mashq
 """
 )
 
@@ -219,7 +221,7 @@ Yengil mashqlar
         if user_id in premium_users:
 
             await update.message.reply_text(
-"💎 Premium bo‘lim",
+"💎 Premium menyu",
 reply_markup=premium_menu
 )
 
@@ -246,17 +248,9 @@ Premium olish uchun yozing:
 🥗 30 KUNLIK DIETA
 
 Har kuni:
-
-🍳 Nonushta
 tuxum + suli
-
-🍗 Tushlik
 tovuq + guruch
-
-🥗 Kechki
 salat + baliq
-
-💧 3 litr suv
 """
 )
 
@@ -270,14 +264,10 @@ salat + baliq
 🔥 PREMIUM MASHQLAR
 
 1️⃣ O‘tirib turish — 25 × 4
-
-2️⃣ Qo‘l bilan ko‘tarilish — 20 × 4
-
+2️⃣ Push-up — 20 × 4
 3️⃣ Turnik — 12 × 4
-
 4️⃣ Qorin mashqi — 30 × 4
-
-5️⃣ Planka — 90 soniya
+5️⃣ Plank — 90 soniya
 """
 )
 
