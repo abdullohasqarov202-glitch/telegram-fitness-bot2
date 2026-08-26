@@ -1,5 +1,10 @@
 import os
-from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import (
+    Update,
+    ReplyKeyboardMarkup,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton
+)
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -20,11 +25,10 @@ if not TOKEN:
 
 
 # =========================
-# 📢 MAJBURIY OBUNA
+# 📢 MAJBURIY KANAL
 # =========================
 
-CHANNEL_USERNAME = "@moonsecurityy"
-
+CHANNEL_USERNAME = "@SENING_KANALING"
 
 
 # =========================
@@ -35,7 +39,7 @@ users = {}
 
 
 # =========================
-# 🎛 ASOSIY 4 TA TUGMA
+# 🎛 4 TA ASOSIY TUGMA
 # =========================
 
 main_menu = [
@@ -50,45 +54,30 @@ keyboard = ReplyKeyboardMarkup(
 
 
 # =========================
-# 🔍 OBUNANI TEKSHIRISH
+# 🔍 KANALGA OBUNANI TEKSHIRISH
 # =========================
 
 async def check_subscription(bot, user_id):
 
-    channel_ok = False
-    group_ok = False
-
-    # Kanal
     try:
         member = await bot.get_chat_member(
             CHANNEL_USERNAME,
             user_id
         )
 
-        if member.status in ["member", "administrator", "creator"]:
-            channel_ok = True
+        return member.status in [
+            "member",
+            "administrator",
+            "creator"
+        ]
 
     except Exception as e:
-        print("Kanal tekshirish xatosi:", e)
-
-    # Guruh
-    try:
-        member = await bot.get_chat_member(
-            GROUP_USERNAME,
-            user_id
-        )
-
-        if member.status in ["member", "administrator", "creator"]:
-            group_ok = True
-
-    except Exception as e:
-        print("Guruh tekshirish xatosi:", e)
-
-    return channel_ok and group_ok
+        print("❌ Obunani tekshirish xatosi:", e)
+        return False
 
 
 # =========================
-# 📢 OBUNA TUGMALARI
+# 📢 OBUNA TUGMASI
 # =========================
 
 def subscription_keyboard():
@@ -98,12 +87,6 @@ def subscription_keyboard():
             InlineKeyboardButton(
                 "📢 Kanalga obuna bo‘lish",
                 url=f"https://t.me/{CHANNEL_USERNAME.replace('@', '')}"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "👥 Guruhga qo‘shilish",
-                url=f"https://t.me/{GROUP_USERNAME.replace('@', '')}"
             )
         ],
         [
@@ -121,52 +104,43 @@ def subscription_keyboard():
 # 🚀 START
 # =========================
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
 
     user = update.effective_user
-    user_id = user.id
 
-    users[user_id] = {
+    users[user.id] = {
         "name": user.first_name
     }
 
-    # Obunani tekshirish
     subscribed = await check_subscription(
         context.bot,
-        user_id
+        user.id
     )
 
-    # Obuna yo‘q
+    # OBUNA YO‘Q
     if not subscribed:
 
         await update.message.reply_text(
             f"👋 Salom, <b>{user.first_name}</b>!\n\n"
-            "🤖 Savol-javob botiga xush kelibsiz!\n\n"
-            "Botdan foydalanish uchun quyidagi "
-            "kanal va guruhga a'zo bo‘ling:\n\n"
-            "📢 Kanal — majburiy\n"
-            "👥 Guruh — majburiy\n\n"
-            "A'zo bo‘lgach, "
-            "«✅ Obunani tekshirish» tugmasini bosing 👇",
+            "🤖 <b>Savol-javob botiga xush kelibsiz!</b>\n\n"
+            "Botdan foydalanish uchun avval "
+            "kanalimizga obuna bo‘ling 👇\n\n"
+            "📢 Kanalga obuna bo‘lish majburiy.\n\n"
+            "Obuna bo‘lgach, "
+            "«✅ Obunani tekshirish» tugmasini bosing.",
             parse_mode="HTML",
             reply_markup=subscription_keyboard()
         )
 
         return
 
-    # Obuna bor
-    await send_main_menu(update, user)
-
-
-# =========================
-# 🎛 ASOSIY MENYU
-# =========================
-
-async def send_main_menu(update, user):
-
+    # OBUNA BOR
     await update.message.reply_text(
         f"👋 Salom, <b>{user.first_name}</b>!\n\n"
-        "🤖 Savol-javob botiga xush kelibsiz!\n\n"
+        "🤖 <b>Savol-javob botiga xush kelibsiz!</b>\n\n"
         "Kerakli bo‘limni tanlang 👇",
         parse_mode="HTML",
         reply_markup=keyboard
@@ -184,19 +158,23 @@ async def check_subscription_callback(
 
     query = update.callback_query
 
-    await query.answer()
-
     user = query.from_user
-    user_id = user.id
 
     subscribed = await check_subscription(
         context.bot,
-        user_id
+        user.id
     )
 
     if subscribed:
 
-        await query.message.delete()
+        await query.answer(
+            "✅ Obuna tasdiqlandi!"
+        )
+
+        try:
+            await query.message.delete()
+        except:
+            pass
 
         await context.bot.send_message(
             chat_id=query.message.chat_id,
@@ -213,7 +191,7 @@ async def check_subscription_callback(
     else:
 
         await query.answer(
-            "❌ Avval kanal va guruhga a'zo bo‘ling!",
+            "❌ Avval kanalga obuna bo‘ling!",
             show_alert=True
         )
 
@@ -235,7 +213,7 @@ async def ask_question(
     ):
 
         await update.message.reply_text(
-            "🚫 Avval kanal va guruhga a'zo bo‘ling!",
+            "🚫 Avval kanalga obuna bo‘ling!",
             reply_markup=subscription_keyboard()
         )
 
@@ -284,7 +262,7 @@ async def profile(
     )
 
     await update.message.reply_text(
-        f"👤 <b>Profilim</b>\n\n"
+        "👤 <b>Profilim</b>\n\n"
         f"🆔 ID: <code>{user.id}</code>\n"
         f"👤 Ism: {user.first_name}\n"
         f"🔗 Username: {username}",
@@ -306,8 +284,8 @@ async def help_button(
         "❓ Savol berish — savolingizni yuborish.\n"
         "📚 Savollar — ko‘p beriladigan savollar.\n"
         "👤 Profilim — profilingizni ko‘rish.\n\n"
-        "Botdan foydalanish uchun kanal va "
-        "guruhga a'zo bo‘lish talab qilinadi.",
+        "Botdan foydalanish uchun kanalga "
+        "obuna bo‘lish talab qilinadi.",
         parse_mode="HTML"
     )
 
@@ -324,16 +302,32 @@ async def message_handler(
     text = update.message.text
 
     if text == "❓ Savol berish":
-        await ask_question(update, context)
+
+        await ask_question(
+            update,
+            context
+        )
 
     elif text == "📚 Savollar":
-        await questions(update, context)
+
+        await questions(
+            update,
+            context
+        )
 
     elif text == "👤 Profilim":
-        await profile(update, context)
+
+        await profile(
+            update,
+            context
+        )
 
     elif text == "ℹ️ Yordam":
-        await help_button(update, context)
+
+        await help_button(
+            update,
+            context
+        )
 
     else:
 
@@ -353,10 +347,13 @@ def main():
 
     # START
     app.add_handler(
-        CommandHandler("start", start)
+        CommandHandler(
+            "start",
+            start
+        )
     )
 
-    # OBUNA TEKSHIRISH
+    # OBUNANI TEKSHIRISH
     app.add_handler(
         CallbackQueryHandler(
             check_subscription_callback,
