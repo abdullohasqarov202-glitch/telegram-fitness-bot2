@@ -1,385 +1,176 @@
-import os
-from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    MessageHandler,
-    CallbackQueryHandler,
-    ContextTypes,
-    filters
-)
-
-# =========================
-# 🔑 BOT TOKEN
-# =========================
+from telegram import Update, ReplyKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
 TOKEN = os.getenv("BOT_TOKEN")
 
-if not TOKEN:
-    raise RuntimeError("❌ BOT_TOKEN topilmadi!")
-
-
-# =========================
-# 📢 MAJBURIY OBUNA
-# =========================
-
-CHANNEL_USERNAME = "@SENING_KANALING"
-GROUP_USERNAME = "@SENING_GURUHING"
-
-
-# =========================
-# 👤 FOYDALANUVCHILAR
-# =========================
+ADMIN = "@Asqarov_0207"
 
 users = {}
 
-
-# =========================
-# 🎛 ASOSIY 4 TA TUGMA
-# =========================
-
 main_menu = [
-    ["❓ Savol berish", "📚 Savollar"],
-    ["👤 Profilim", "ℹ️ Yordam"]
+    ["🏋️ Vazn olish", "🔥 Vazn yo‘qotish"],
+    ["📅 7 kunlik ovqatlanish"],
+    ["💎 Premium reja"]
 ]
 
-keyboard = ReplyKeyboardMarkup(
-    main_menu,
-    resize_keyboard=True
-)
+keyboard = ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
 
-
-# =========================
-# 🔍 OBUNANI TEKSHIRISH
-# =========================
-
-async def check_subscription(bot, user_id):
-
-    channel_ok = False
-    group_ok = False
-
-    # Kanal
-    try:
-        member = await bot.get_chat_member(
-            CHANNEL_USERNAME,
-            user_id
-        )
-
-        if member.status in ["member", "administrator", "creator"]:
-            channel_ok = True
-
-    except Exception as e:
-        print("Kanal tekshirish xatosi:", e)
-
-    # Guruh
-    try:
-        member = await bot.get_chat_member(
-            GROUP_USERNAME,
-            user_id
-        )
-
-        if member.status in ["member", "administrator", "creator"]:
-            group_ok = True
-
-    except Exception as e:
-        print("Guruh tekshirish xatosi:", e)
-
-    return channel_ok and group_ok
-
-
-# =========================
-# 📢 OBUNA TUGMALARI
-# =========================
-
-def subscription_keyboard():
-
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "📢 Kanalga obuna bo‘lish",
-                url=f"https://t.me/{CHANNEL_USERNAME.replace('@', '')}"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "👥 Guruhga qo‘shilish",
-                url=f"https://t.me/{GROUP_USERNAME.replace('@', '')}"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                "✅ Obunani tekshirish",
-                callback_data="check_subscription"
-            )
-        ]
-    ]
-
-    return InlineKeyboardMarkup(keyboard)
-
-
-# =========================
-# 🚀 START
-# =========================
-
+# START
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    user = update.effective_user
-    user_id = user.id
-
-    users[user_id] = {
-        "name": user.first_name
-    }
-
-    # Obunani tekshirish
-    subscribed = await check_subscription(
-        context.bot,
-        user_id
-    )
-
-    # Obuna yo‘q
-    if not subscribed:
-
-        await update.message.reply_text(
-            f"👋 Salom, <b>{user.first_name}</b>!\n\n"
-            "🤖 Savol-javob botiga xush kelibsiz!\n\n"
-            "Botdan foydalanish uchun quyidagi "
-            "kanal va guruhga a'zo bo‘ling:\n\n"
-            "📢 Kanal — majburiy\n"
-            "👥 Guruh — majburiy\n\n"
-            "A'zo bo‘lgach, "
-            "«✅ Obunani tekshirish» tugmasini bosing 👇",
-            parse_mode="HTML",
-            reply_markup=subscription_keyboard()
-        )
-
-        return
-
-    # Obuna bor
-    await send_main_menu(update, user)
-
-
-# =========================
-# 🎛 ASOSIY MENYU
-# =========================
-
-async def send_main_menu(update, user):
+    user = update.message.from_user
+    users[user.id] = {"step": "goal"}
 
     await update.message.reply_text(
-        f"👋 Salom, <b>{user.first_name}</b>!\n\n"
-        "🤖 Savol-javob botiga xush kelibsiz!\n\n"
-        "Kerakli bo‘limni tanlang 👇",
-        parse_mode="HTML",
+        "👋 Salom!\n\n"
+        "💪 Fitness yordamchi botiga xush kelibsiz!\n\n"
+        "Maqsadingizni tanlang:",
         reply_markup=keyboard
     )
 
+# MESSAGE HANDLER
+async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-# =========================
-# ✅ OBUNANI TEKSHIRISH
-# =========================
-
-async def check_subscription_callback(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
-    query = update.callback_query
-
-    await query.answer()
-
-    user = query.from_user
-    user_id = user.id
-
-    subscribed = await check_subscription(
-        context.bot,
-        user_id
-    )
-
-    if subscribed:
-
-        await query.message.delete()
-
-        await context.bot.send_message(
-            chat_id=query.message.chat_id,
-            text=(
-                f"🎉 <b>Obuna tasdiqlandi!</b>\n\n"
-                f"👋 Salom, <b>{user.first_name}</b>!\n\n"
-                "🤖 Endi botdan foydalanishingiz mumkin.\n\n"
-                "Kerakli bo‘limni tanlang 👇"
-            ),
-            parse_mode="HTML",
-            reply_markup=keyboard
-        )
-
-    else:
-
-        await query.answer(
-            "❌ Avval kanal va guruhga a'zo bo‘ling!",
-            show_alert=True
-        )
-
-
-# =========================
-# ❓ SAVOL BERISH
-# =========================
-
-async def ask_question(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
-    user = update.effective_user
-
-    if not await check_subscription(
-        context.bot,
-        user.id
-    ):
-
-        await update.message.reply_text(
-            "🚫 Avval kanal va guruhga a'zo bo‘ling!",
-            reply_markup=subscription_keyboard()
-        )
-
-        return
-
-    await update.message.reply_text(
-        "❓ <b>Savol berish</b>\n\n"
-        "Savolingizni yozib yuboring 👇",
-        parse_mode="HTML"
-    )
-
-
-# =========================
-# 📚 SAVOLLAR
-# =========================
-
-async def questions(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
-    await update.message.reply_text(
-        "📚 <b>Ko‘p beriladigan savollar</b>\n\n"
-        "1️⃣ Bot qanday ishlaydi?\n"
-        "2️⃣ Savolga qanday javob olaman?\n"
-        "3️⃣ Botdan foydalanish bepulmi?",
-        parse_mode="HTML"
-    )
-
-
-# =========================
-# 👤 PROFIL
-# =========================
-
-async def profile(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
-    user = update.effective_user
-
-    username = (
-        f"@{user.username}"
-        if user.username
-        else "Username yo‘q"
-    )
-
-    await update.message.reply_text(
-        f"👤 <b>Profilim</b>\n\n"
-        f"🆔 ID: <code>{user.id}</code>\n"
-        f"👤 Ism: {user.first_name}\n"
-        f"🔗 Username: {username}",
-        parse_mode="HTML"
-    )
-
-
-# =========================
-# ℹ️ YORDAM
-# =========================
-
-async def help_button(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
-    await update.message.reply_text(
-        "ℹ️ <b>Yordam</b>\n\n"
-        "❓ Savol berish — savolingizni yuborish.\n"
-        "📚 Savollar — ko‘p beriladigan savollar.\n"
-        "👤 Profilim — profilingizni ko‘rish.\n\n"
-        "Botdan foydalanish uchun kanal va "
-        "guruhga a'zo bo‘lish talab qilinadi.",
-        parse_mode="HTML"
-    )
-
-
-# =========================
-# 💬 MATNLARNI QABUL QILISH
-# =========================
-
-async def message_handler(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
+    user = update.message.from_user
     text = update.message.text
 
-    if text == "❓ Savol berish":
-        await ask_question(update, context)
+    if user.id not in users:
+        users[user.id] = {"step": "goal"}
 
-    elif text == "📚 Savollar":
-        await questions(update, context)
+    step = users[user.id]["step"]
 
-    elif text == "👤 Profilim":
-        await profile(update, context)
+    # GOAL
+    if text == "🏋️ Vazn olish":
+        users[user.id]["goal"] = "gain"
+        users[user.id]["step"] = "weight"
+        await update.message.reply_text("⚖️ Vazningiz nechchi kg?")
 
-    elif text == "ℹ️ Yordam":
-        await help_button(update, context)
+    elif text == "🔥 Vazn yo‘qotish":
+        users[user.id]["goal"] = "lose"
+        users[user.id]["step"] = "weight"
+        await update.message.reply_text("⚖️ Hozir vazningiz nechchi kg?")
 
-    else:
+    # WEIGHT
+    elif step == "weight":
+        users[user.id]["weight"] = text
+        users[user.id]["step"] = "height"
+        await update.message.reply_text("📏 Bo‘yingiz nechchi sm?")
+
+    # HEIGHT
+    elif step == "height":
+        users[user.id]["height"] = text
+        users[user.id]["step"] = "age"
+        await update.message.reply_text("🎂 Yoshingiz nechchi?")
+
+    # AGE
+    elif step == "age":
+
+        users[user.id]["age"] = text
+        goal = users[user.id]["goal"]
+
+        if goal == "gain":
+
+            await update.message.reply_text(
+                "🏋️ Vazn olish uchun tavsiya:\n\n"
+                "🍳 Nonushta:\n"
+                "Tuxum, suli bo‘tqa, banan, sut\n\n"
+                "🍗 Tushlik:\n"
+                "Guruch, tovuq go‘shti, sabzavot\n\n"
+                "🥩 Kechki ovqat:\n"
+                "Go‘sht, kartoshka, salat\n\n"
+                "🥜 Snack:\n"
+                "Yong‘oq, qatiq\n\n"
+                "💧 Kuniga 3 litr suv iching"
+            )
+
+        else:
+
+            await update.message.reply_text(
+                "🔥 Vazn tashlash uchun tavsiya:\n\n"
+                "🍳 Nonushta:\n"
+                "2 ta tuxum, bodring, choy\n\n"
+                "🥗 Tushlik:\n"
+                "Tovuq, sabzavot salat\n\n"
+                "🥗 Kechki ovqat:\n"
+                "Sabzavot + baliq\n\n"
+                "🍏 Snack:\n"
+                "Olma yoki yogurt\n\n"
+                "💧 Kuniga 2.5 litr suv iching"
+            )
+
+        users[user.id]["step"] = "done"
+
+    # 7 KUNLIK OVQAT
+    elif text == "📅 7 kunlik ovqatlanish":
 
         await update.message.reply_text(
-            "🤔 Iltimos, menyudagi tugmalardan birini tanlang 👇",
-            reply_markup=keyboard
+            "📅 7 kunlik ovqatlanish rejasi\n\n"
+
+            "1-kun\n"
+            "🍳 Tuxum + suli\n"
+            "🍗 Tovuq + guruch\n"
+            "🥗 Salat\n\n"
+
+            "2-kun\n"
+            "🍳 Tuxum + non\n"
+            "🥩 Go‘sht + kartoshka\n"
+            "🥗 Salat\n\n"
+
+            "3-kun\n"
+            "🥣 Suli + banan\n"
+            "🍗 Tovuq + makaron\n"
+            "🥗 Sabzavot\n\n"
+
+            "4-kun\n"
+            "🍳 Tuxum\n"
+            "🍗 Tovuq\n"
+            "🥗 Salat\n\n"
+
+            "5-kun\n"
+            "🥣 Suli\n"
+            "🥩 Go‘sht\n"
+            "🥗 Sabzavot\n\n"
+
+            "6-kun\n"
+            "🍳 Tuxum\n"
+            "🍗 Tovuq\n"
+            "🥗 Salat\n\n"
+
+            "7-kun\n"
+            "🥣 Suli\n"
+            "🥩 Go‘sht\n"
+            "🥗 Sabzavot"
         )
 
-
-# =========================
-# ▶️ BOTNI ISHGA TUSHIRISH
-# =========================
-
-def main():
-
-    app = ApplicationBuilder().token(TOKEN).build()
-
-    # START
-    app.add_handler(
-        CommandHandler("start", start)
-    )
-
-    # OBUNA TEKSHIRISH
-    app.add_handler(
-        CallbackQueryHandler(
-            check_subscription_callback,
-            pattern="^check_subscription$"
+    # PREMIUM
+    elif text == "💎 Premium reja":
+[26.08.2026 16:28] ㅤANONYMOUSㅤ🎭: await update.message.reply_text(
+            "💎 PREMIUM REJA\n\n"
+            "✔️ Shaxsiy dieta\n"
+            "✔️ Kunlik menyu\n"
+            "✔️ Vazn nazorati\n"
+            "✔️ 30 kunlik plan\n\n"
+            "💰 Narx: 20 000 so‘m / oy\n\n"
+            f"To‘lov uchun admin: {ADMIN}"
         )
-    )
 
-    # MATNLAR
-    app.add_handler(
-        MessageHandler(
-            filters.TEXT & ~filters.COMMAND,
-            message_handler
+# ADMIN STATS
+async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    if update.message.from_user.username == "Asqarov_0207":
+
+        total = len(users)
+
+        await update.message.reply_text(
+            f"📊 Bot statistikasi\n\n"
+            f"👤 Foydalanuvchilar: {total}"
         )
-    )
 
-    print("🤖 Bot ishga tushdi...")
+# APP
+app = ApplicationBuilder().token(TOKEN).build()
 
-    app.run_polling()
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("stats", stats))
+app.add_handler(MessageHandler(filters.TEXT, message))
 
-
-# =========================
-# 🚀 RUN
-# =========================
-
-if __name__ == "__main__":
-    main()
+app.run_polling()
