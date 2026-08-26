@@ -207,8 +207,7 @@ async def services(
     # 👇 SHU JOYNI KEYIN O‘ZING TO‘LDIRASAN
 
     await update.message.reply_text(
-        "🛠 <b>Xizmatlar</b>\n\n"
-        "Bu yerga xizmatlaringizni yozishingiz mumkin.\n\n"
+        "🛠 <b>Xizmatlar</b>\n\n
         "1️⃣ Xizmat 1\n"
         "2️⃣ Xizmat 2\n"
         "3️⃣ Xizmat 3\n\n"
