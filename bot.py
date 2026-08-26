@@ -28,7 +28,7 @@ if not TOKEN:
 # 📢 MAJBURIY KANAL
 # =========================
 
-CHANNEL_USERNAME = "@SENING_KANALING"
+CHANNEL_USERNAME = "@moonsecurityy"
 
 
 # =========================
