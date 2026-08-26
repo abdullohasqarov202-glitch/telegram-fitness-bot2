@@ -124,7 +124,7 @@ async def start(
 
         await update.message.reply_text(
             f"👋 Salom, <b>{user.first_name}</b>!\n\n"
-            "🤖 <b>Moon Securty botiga xush kelibsiz!</b>\n\n"
+            "🤖 <b> Moon Securty botiga xush kelibsiz!</b>\n\n"
             "Botdan foydalanish uchun avval "
             "kanalimizga obuna bo‘ling 👇\n\n"
             "📢 Kanalga obuna bo‘lish majburiy.\n\n"
@@ -139,7 +139,7 @@ async def start(
     # OBUNA BOR
     await update.message.reply_text(
         f"👋 Salom, <b>{user.first_name}</b>!\n\n"
-        "🤖 <b>Savol-javob botiga xush kelibsiz!</b>\n\n"
+        "🤖 <b>Moon Securty botiga xush kelibsiz!</b>\n\n"
         "Kerakli bo‘limni tanlang 👇",
         parse_mode="HTML",
         reply_markup=keyboard
