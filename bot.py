@@ -1,145 +1,385 @@
-import logging
 import os
- 
-from dotenv import load_dotenv
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.constants import ParseMode
+from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
-    Application,
-    CallbackQueryHandler,
+    ApplicationBuilder,
     CommandHandler,
+    MessageHandler,
+    CallbackQueryHandler,
     ContextTypes,
+    filters
 )
- 
-# ---------------------------------------------------------------------------
-# Sozlamalar (.env fayldan olinadi)
-# ---------------------------------------------------------------------------
-load_dotenv()
- 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHANNEL_USERNAME = os.getenv("CHANNEL_USERNAME")  # masalan: @mening_kanalim
-CHANNEL_ID = os.getenv("CHANNEL_ID")  # masalan: -1001234567890 (username ishlamasa shu ishlatiladi)
- 
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
+
+# =========================
+# 🔑 BOT TOKEN
+# =========================
+
+TOKEN = os.getenv("BOT_TOKEN")
+
+if not TOKEN:
+    raise RuntimeError("❌ BOT_TOKEN topilmadi!")
+
+
+# =========================
+# 📢 MAJBURIY OBUNA
+# =========================
+
+CHANNEL_USERNAME = "@moonsecurityy"
+
+
+
+# =========================
+# 👤 FOYDALANUVCHILAR
+# =========================
+
+users = {}
+
+
+# =========================
+# 🎛 ASOSIY 4 TA TUGMA
+# =========================
+
+main_menu = [
+    ["❓ Savol berish", "📚 Savollar"],
+    ["👤 Profilim", "ℹ️ Yordam"]
+]
+
+keyboard = ReplyKeyboardMarkup(
+    main_menu,
+    resize_keyboard=True
 )
-logger = logging.getLogger(__name__)
- 
- 
-# ---------------------------------------------------------------------------
-# Yordamchi funksiyalar
-# ---------------------------------------------------------------------------
-def get_subscribe_keyboard() -> InlineKeyboardMarkup:
-    """Obuna bo'lish va tekshirish tugmalari."""
-    channel_link = f"https://t.me/{CHANNEL_USERNAME.lstrip('@')}"
-    keyboard = [
-        [InlineKeyboardButton("📢 Kanalga obuna bo'lish", url=channel_link)],
-        [InlineKeyboardButton("✅ Obunani tekshirish", callback_data="check_sub")],
-    ]
-    return InlineKeyboardMarkup(keyboard)
- 
- 
-def get_main_menu_keyboard() -> InlineKeyboardMarkup:
-    """Obuna tasdiqlangandan keyin chiqadigan 4 ta tugma (2x2)."""
-    keyboard = [
-        [
-            InlineKeyboardButton("1️⃣ Tugma 1", callback_data="btn_1"),
-            InlineKeyboardButton("2️⃣ Tugma 2", callback_data="btn_2"),
-        ],
-        [
-            InlineKeyboardButton("3️⃣ Tugma 3", callback_data="btn_3"),
-            InlineKeyboardButton("4️⃣ Tugma 4", callback_data="btn_4"),
-        ],
-    ]
-    return InlineKeyboardMarkup(keyboard)
- 
- 
-async def is_user_subscribed(context: ContextTypes.DEFAULT_TYPE, user_id: int) -> bool:
-    """Foydalanuvchi kanalga obuna bo'lganini tekshiradi."""
-    chat_ref = CHANNEL_ID if CHANNEL_ID else CHANNEL_USERNAME
+
+
+# =========================
+# 🔍 OBUNANI TEKSHIRISH
+# =========================
+
+async def check_subscription(bot, user_id):
+
+    channel_ok = False
+    group_ok = False
+
+    # Kanal
     try:
-        member = await context.bot.get_chat_member(chat_id=chat_ref, user_id=user_id)
-        return member.status in ("member", "administrator", "creator")
+        member = await bot.get_chat_member(
+            CHANNEL_USERNAME,
+            user_id
+        )
+
+        if member.status in ["member", "administrator", "creator"]:
+            channel_ok = True
+
     except Exception as e:
-        logger.warning("Obunani tekshirishda xatolik: %s", e)
-        return False
- 
- 
-# ---------------------------------------------------------------------------
-# Handlerlar
-# ---------------------------------------------------------------------------
+        print("Kanal tekshirish xatosi:", e)
+
+    # Guruh
+    try:
+        member = await bot.get_chat_member(
+            GROUP_USERNAME,
+            user_id
+        )
+
+        if member.status in ["member", "administrator", "creator"]:
+            group_ok = True
+
+    except Exception as e:
+        print("Guruh tekshirish xatosi:", e)
+
+    return channel_ok and group_ok
+
+
+# =========================
+# 📢 OBUNA TUGMALARI
+# =========================
+
+def subscription_keyboard():
+
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "📢 Kanalga obuna bo‘lish",
+                url=f"https://t.me/{CHANNEL_USERNAME.replace('@', '')}"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "👥 Guruhga qo‘shilish",
+                url=f"https://t.me/{GROUP_USERNAME.replace('@', '')}"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "✅ Obunani tekshirish",
+                callback_data="check_subscription"
+            )
+        ]
+    ]
+
+    return InlineKeyboardMarkup(keyboard)
+
+
+# =========================
+# 🚀 START
+# =========================
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     user = update.effective_user
-    subscribed = await is_user_subscribed(context, user.id)
- 
-    if subscribed:
-        await update.message.reply_text(
-            f"Salom, {user.first_name}! 👋\n\nQuyidagi menyudan birini tanlang:",
-            reply_markup=get_main_menu_keyboard(),
-        )
-    else:
-        await update.message.reply_text(
-            f"Salom, {user.first_name}! 👋\n\n"
-            "Botdan foydalanish uchun avval kanalimizga obuna bo'lishingiz kerak.\n"
-            "Obuna bo'lgach, pastdagi \"Obunani tekshirish\" tugmasini bosing.",
-            reply_markup=get_subscribe_keyboard(),
-        )
- 
- 
-async def check_subscription_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    user = query.from_user
-    subscribed = await is_user_subscribed(context, user.id)
- 
-    if subscribed:
-        await query.answer("Obuna tasdiqlandi ✅")
-        await query.edit_message_text(
-            f"Rahmat, {user.first_name}! Endi botdan to'liq foydalanishingiz mumkin.\n\n"
-            "Quyidagi menyudan birini tanlang:",
-            reply_markup=get_main_menu_keyboard(),
-        )
-    else:
-        await query.answer("Siz hali kanalga obuna bo'lmagansiz ❌", show_alert=True)
- 
- 
-async def menu_button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """4 ta menyu tugmasi bosilganda ishlaydi."""
-    query = update.callback_query
-    await query.answer()
- 
-    responses = {
-        "btn_1": "Siz 1-tugmani bosdingiz.",
-        "btn_2": "Siz 2-tugmani bosdingiz.",
-        "btn_3": "Siz 3-tugmani bosdingiz.",
-        "btn_4": "Siz 4-tugmani bosdingiz.",
+    user_id = user.id
+
+    users[user_id] = {
+        "name": user.first_name
     }
-    text = responses.get(query.data, "Noma'lum buyruq.")
- 
-    await query.edit_message_text(
-        text=text,
-        reply_markup=get_main_menu_keyboard(),
+
+    # Obunani tekshirish
+    subscribed = await check_subscription(
+        context.bot,
+        user_id
     )
- 
- 
-# ---------------------------------------------------------------------------
-# Botni ishga tushirish
-# ---------------------------------------------------------------------------
+
+    # Obuna yo‘q
+    if not subscribed:
+
+        await update.message.reply_text(
+            f"👋 Salom, <b>{user.first_name}</b>!\n\n"
+            "🤖 Savol-javob botiga xush kelibsiz!\n\n"
+            "Botdan foydalanish uchun quyidagi "
+            "kanal va guruhga a'zo bo‘ling:\n\n"
+            "📢 Kanal — majburiy\n"
+            "👥 Guruh — majburiy\n\n"
+            "A'zo bo‘lgach, "
+            "«✅ Obunani tekshirish» tugmasini bosing 👇",
+            parse_mode="HTML",
+            reply_markup=subscription_keyboard()
+        )
+
+        return
+
+    # Obuna bor
+    await send_main_menu(update, user)
+
+
+# =========================
+# 🎛 ASOSIY MENYU
+# =========================
+
+async def send_main_menu(update, user):
+
+    await update.message.reply_text(
+        f"👋 Salom, <b>{user.first_name}</b>!\n\n"
+        "🤖 Savol-javob botiga xush kelibsiz!\n\n"
+        "Kerakli bo‘limni tanlang 👇",
+        parse_mode="HTML",
+        reply_markup=keyboard
+    )
+
+
+# =========================
+# ✅ OBUNANI TEKSHIRISH
+# =========================
+
+async def check_subscription_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
+    query = update.callback_query
+
+    await query.answer()
+
+    user = query.from_user
+    user_id = user.id
+
+    subscribed = await check_subscription(
+        context.bot,
+        user_id
+    )
+
+    if subscribed:
+
+        await query.message.delete()
+
+        await context.bot.send_message(
+            chat_id=query.message.chat_id,
+            text=(
+                f"🎉 <b>Obuna tasdiqlandi!</b>\n\n"
+                f"👋 Salom, <b>{user.first_name}</b>!\n\n"
+                "🤖 Endi botdan foydalanishingiz mumkin.\n\n"
+                "Kerakli bo‘limni tanlang 👇"
+            ),
+            parse_mode="HTML",
+            reply_markup=keyboard
+        )
+
+    else:
+
+        await query.answer(
+            "❌ Avval kanal va guruhga a'zo bo‘ling!",
+            show_alert=True
+        )
+
+
+# =========================
+# ❓ SAVOL BERISH
+# =========================
+
+async def ask_question(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
+    user = update.effective_user
+
+    if not await check_subscription(
+        context.bot,
+        user.id
+    ):
+
+        await update.message.reply_text(
+            "🚫 Avval kanal va guruhga a'zo bo‘ling!",
+            reply_markup=subscription_keyboard()
+        )
+
+        return
+
+    await update.message.reply_text(
+        "❓ <b>Savol berish</b>\n\n"
+        "Savolingizni yozib yuboring 👇",
+        parse_mode="HTML"
+    )
+
+
+# =========================
+# 📚 SAVOLLAR
+# =========================
+
+async def questions(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
+    await update.message.reply_text(
+        "📚 <b>Ko‘p beriladigan savollar</b>\n\n"
+        "1️⃣ Bot qanday ishlaydi?\n"
+        "2️⃣ Savolga qanday javob olaman?\n"
+        "3️⃣ Botdan foydalanish bepulmi?",
+        parse_mode="HTML"
+    )
+
+
+# =========================
+# 👤 PROFIL
+# =========================
+
+async def profile(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
+    user = update.effective_user
+
+    username = (
+        f"@{user.username}"
+        if user.username
+        else "Username yo‘q"
+    )
+
+    await update.message.reply_text(
+        f"👤 <b>Profilim</b>\n\n"
+        f"🆔 ID: <code>{user.id}</code>\n"
+        f"👤 Ism: {user.first_name}\n"
+        f"🔗 Username: {username}",
+        parse_mode="HTML"
+    )
+
+
+# =========================
+# ℹ️ YORDAM
+# =========================
+
+async def help_button(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
+    await update.message.reply_text(
+        "ℹ️ <b>Yordam</b>\n\n"
+        "❓ Savol berish — savolingizni yuborish.\n"
+        "📚 Savollar — ko‘p beriladigan savollar.\n"
+        "👤 Profilim — profilingizni ko‘rish.\n\n"
+        "Botdan foydalanish uchun kanal va "
+        "guruhga a'zo bo‘lish talab qilinadi.",
+        parse_mode="HTML"
+    )
+
+
+# =========================
+# 💬 MATNLARNI QABUL QILISH
+# =========================
+
+async def message_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
+    text = update.message.text
+
+    if text == "❓ Savol berish":
+        await ask_question(update, context)
+
+    elif text == "📚 Savollar":
+        await questions(update, context)
+
+    elif text == "👤 Profilim":
+        await profile(update, context)
+
+    elif text == "ℹ️ Yordam":
+        await help_button(update, context)
+
+    else:
+
+        await update.message.reply_text(
+            "🤔 Iltimos, menyudagi tugmalardan birini tanlang 👇",
+            reply_markup=keyboard
+        )
+
+
+# =========================
+# ▶️ BOTNI ISHGA TUSHIRISH
+# =========================
+
 def main():
-    if not BOT_TOKEN:
-        raise RuntimeError("BOT_TOKEN topilmadi. .env faylga BOT_TOKEN qo'shing.")
-    if not CHANNEL_USERNAME and not CHANNEL_ID:
-        raise RuntimeError("CHANNEL_USERNAME yoki CHANNEL_ID .env faylda ko'rsatilishi kerak.")
- 
-    app = Application.builder().token(BOT_TOKEN).build()
- 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(check_subscription_callback, pattern="^check_sub$"))
-    app.add_handler(CallbackQueryHandler(menu_button_callback, pattern="^btn_"))
- 
-    logger.info("Bot ishga tushdi...")
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
- 
- 
+
+    app = ApplicationBuilder().token(TOKEN).build()
+
+    # START
+    app.add_handler(
+        CommandHandler("start", start)
+    )
+
+    # OBUNA TEKSHIRISH
+    app.add_handler(
+        CallbackQueryHandler(
+            check_subscription_callback,
+            pattern="^check_subscription$"
+        )
+    )
+
+    # MATNLAR
+    app.add_handler(
+        MessageHandler(
+            filters.TEXT & ~filters.COMMAND,
+            message_handler
+        )
+    )
+
+    print("🤖 Bot ishga tushdi...")
+
+    app.run_polling()
+
+
+# =========================
+# 🚀 RUN
+# =========================
+
 if __name__ == "__main__":
     main()
