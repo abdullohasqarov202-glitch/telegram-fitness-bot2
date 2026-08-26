@@ -233,7 +233,7 @@ async def admin(
         "👤 <b>Admin</b>\n\n"
         "Admin bilan bog‘lanish uchun:\n\n"
         "📩 Admin: @Moonnadmin\n\n"
-        "nomwer 2.",
+        "📱 Nomwer: 90 629 19 12 ",
         parse_mode="HTML"
     )
 
