@@ -39,12 +39,11 @@ users = {}
 
 
 # =========================
-# 🎛 4 TA ASOSIY TUGMA
+# 🎛 2 TA ASOSIY TUGMA
 # =========================
 
 main_menu = [
-    ["❓ Savol berish", "📚 Savollar"],
-    ["👤 Profilim", "ℹ️ Yordam"]
+    ["🛠 Xizmatlar", "👤 Admin"]
 ]
 
 keyboard = ReplyKeyboardMarkup(
@@ -125,7 +124,7 @@ async def start(
 
         await update.message.reply_text(
             f"👋 Salom, <b>{user.first_name}</b>!\n\n"
-            "🤖 <b>Savol-javob botiga xush kelibsiz!</b>\n\n"
+            "🤖 <b>Moon Securty botiga xush kelibsiz!</b>\n\n"
             "Botdan foydalanish uchun avval "
             "kanalimizga obuna bo‘ling 👇\n\n"
             "📢 Kanalga obuna bo‘lish majburiy.\n\n"
@@ -197,95 +196,43 @@ async def check_subscription_callback(
 
 
 # =========================
-# ❓ SAVOL BERISH
+# 🛠 XIZMATLAR
 # =========================
 
-async def ask_question(
+async def services(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
 
-    user = update.effective_user
-
-    if not await check_subscription(
-        context.bot,
-        user.id
-    ):
-
-        await update.message.reply_text(
-            "🚫 Avval kanalga obuna bo‘ling!",
-            reply_markup=subscription_keyboard()
-        )
-
-        return
+    # 👇 SHU JOYNI KEYIN O‘ZING TO‘LDIRASAN
 
     await update.message.reply_text(
-        "❓ <b>Savol berish</b>\n\n"
-        "Savolingizni yozib yuboring 👇",
+        "🛠 <b>Xizmatlar</b>\n\n"
+        "Bu yerga xizmatlaringizni yozishingiz mumkin.\n\n"
+        "1️⃣ Xizmat 1\n"
+        "2️⃣ Xizmat 2\n"
+        "3️⃣ Xizmat 3\n\n"
+        "📌 Ma'lumotlar tez orada qo‘shiladi.",
         parse_mode="HTML"
     )
 
 
 # =========================
-# 📚 SAVOLLAR
+# 👤 ADMIN
 # =========================
 
-async def questions(
+async def admin(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
 
-    await update.message.reply_text(
-        "📚 <b>Ko‘p beriladigan savollar</b>\n\n"
-        "1️⃣ Bot qanday ishlaydi?\n"
-        "2️⃣ Savolga qanday javob olaman?\n"
-        "3️⃣ Botdan foydalanish bepulmi?",
-        parse_mode="HTML"
-    )
-
-
-# =========================
-# 👤 PROFIL
-# =========================
-
-async def profile(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
-    user = update.effective_user
-
-    username = (
-        f"@{user.username}"
-        if user.username
-        else "Username yo‘q"
-    )
+    # 👇 SHU JOYNI KEYIN O‘ZING TO‘LDIRASAN
 
     await update.message.reply_text(
-        "👤 <b>Profilim</b>\n\n"
-        f"🆔 ID: <code>{user.id}</code>\n"
-        f"👤 Ism: {user.first_name}\n"
-        f"🔗 Username: {username}",
-        parse_mode="HTML"
-    )
-
-
-# =========================
-# ℹ️ YORDAM
-# =========================
-
-async def help_button(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
-    await update.message.reply_text(
-        "ℹ️ <b>Yordam</b>\n\n"
-        "❓ Savol berish — savolingizni yuborish.\n"
-        "📚 Savollar — ko‘p beriladigan savollar.\n"
-        "👤 Profilim — profilingizni ko‘rish.\n\n"
-        "Botdan foydalanish uchun kanalga "
-        "obuna bo‘lish talab qilinadi.",
+        "👤 <b>Admin</b>\n\n"
+        "Admin bilan bog‘lanish uchun:\n\n"
+        "📩 Admin: @Moonnadmin\n\n"
+        "nomwer 2.",
         parse_mode="HTML"
     )
 
@@ -301,30 +248,18 @@ async def message_handler(
 
     text = update.message.text
 
-    if text == "❓ Savol berish":
+    # 🛠 XIZMATLAR
+    if text == "🛠 Xizmatlar":
 
-        await ask_question(
+        await services(
             update,
             context
         )
 
-    elif text == "📚 Savollar":
+    # 👤 ADMIN
+    elif text == "👤 Admin":
 
-        await questions(
-            update,
-            context
-        )
-
-    elif text == "👤 Profilim":
-
-        await profile(
-            update,
-            context
-        )
-
-    elif text == "ℹ️ Yordam":
-
-        await help_button(
+        await admin(
             update,
             context
         )
