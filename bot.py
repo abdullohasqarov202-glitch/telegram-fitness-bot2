@@ -209,7 +209,6 @@ async def services(
     
     await update.message.reply_text(
         "🛠 <b>Xizmatlar</b>\n\n"
-        "\n\n"
         "1️⃣ Xizmat 1\n"
         "2️⃣ Xizmat 2\n"
         "3️⃣ Xizmat 3\n\n"
@@ -233,7 +232,7 @@ async def admin(
         "👤 <b>Admin</b>\n\n"
         "Admin bilan bog‘lanish uchun:\n\n"
         "📩 Admin: @Moonnadmin\n\n"
-        "📱 Nomwer: 90 629 19 12 ",
+        "📱 Nomer: 90 629 19 12 ",
         parse_mode="HTML"
     )
 
