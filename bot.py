@@ -209,7 +209,100 @@ async def services(
     
     await update.message.reply_text(
         "🛠 <b>Xizmatlar</b>\n\n"
-       
+        "1️⃣🔹 Server Security Audit — 500 000 so‘mdan
+🔹 Linux/Windows Server Hardening — 1 000 000 so‘mdan
+🔹 VPS Security — 800 000 so‘mdan
+🔹 Firewall sozlash — 500 000 so‘mdan
+🔹 SSH/RDP Security — 500 000 so‘mdan
+🔹 Web Server Security (Apache/Nginx/IIS) — 1 000 000 so‘mdan
+🔹 SSL/TLS Security — 400 000 so‘mdan
+🔹 Backup & Recovery tizimi — 1 000 000 so‘mdan
+🔹 Server Monitoring — 1 500 000 so‘mdan
+[27.08.2026 14:19] Syber: 🔸 Vulnerability Assessment — 2 000 000 so‘mdan
+Server va xizmatlardagi xavfsizlik zaifliklarini aniqlash.
+
+🔸 Web Application Security Audit — 3 000 000 so‘mdan
+Web-ilovadagi xavfsizlik muammolarini tekshirish.
+
+🔸 Penetration Testing — 5 000 000 so‘mdan
+Faqat mijozning yozma ruxsati bilan nazorat ostidagi xavfsizlik testi.
+
+🔸 External Infrastructure Pentest — 7 000 000 so‘mdan
+Internetga ochiq serverlar, domenlar va xizmatlarning xavfsizlik testi.
+
+🔸 Internal Network Security Audit — 8 000 000 so‘mdan
+Ichki tarmoq, serverlar, foydalanuvchi huquqlari va konfiguratsiyalarni audit qilish.
+
+🔸 Active Directory Security Audit — 10 000 000 so‘mdan
+Korporativ Windows/AD infratuzilmasining xavfsizlik holatini tekshirish.
+
+🔸 Red Team Assessment — 15 000 000 so‘mdan
+Kompaniyaning real hujum ssenariylariga chidamliligini tekshirish. Faqat rasmiy ruxsat asosida.
+
+🔸 SOC / SIEM Monitoring Setup — 10 000 000 so‘mdan
+Loglarni yig‘ish, tahlil qilish, alertlar va xavfsizlik monitoringini tashkil qilish.
+
+🔸 Incident Response — 5 000 000 so‘mdan
+Server yoki infratuzilmada xavfsizlik hodisasi yuz berganda tekshirish, sababini aniqlash va tiklash.
+
+🔸 Digital Forensics — 8 000 000 so‘mdan
+Xavfsizlik hodisasidan keyingi texnik tekshiruv va dalillarni tahlil qilish. 1\n"
+        "2️⃣ 1. SERVER SECURITY AUDIT
+💰 500 000 – 2 000 000 so‘m
+
+Serveringiz tekshiriladi:
+
+• Ochiq portlar
+• Ishlayotgan servislar
+• SSH/RDP sozlamalari
+• Foydalanuvchi huquqlari
+• Firewall
+• Eski dasturlar
+• Zaif konfiguratsiyalar
+• Loglar
+ 
+🔐 2. SERVER HARDENING
+💰 1 000 000 – 5 000 000 so‘m
+
+Server xavfsizligi kuchaytiriladi:
+
+• Keraksiz servislar o‘chiriladi
+• Firewall sozlanadi
+• SSH/RDP himoyalanadi
+
+🌐 3. WEB-SERVER SECURITY
+💰 1 500 000 – 5 000 000 so‘m
+
+Apache / Nginx / IIS serverlari tekshiriladi.
+
+• Web-server konfiguratsiyasi
+• SSL/TLS
+• HTTP security headers
+• Keraksiz endpointlar
+• Fayl va katalog huquqlari
+• Web-server loglari
+• Xavfsizlik sozlamalari
+• Kuchli autentifikatsiya sozlanadi
+• Foydalanuvchi huquqlari tartibga keltiriladi
+• Yangilanishlar sozlanadi
+• Loglash kuchaytiriladi 2\n"
+        "3️⃣ 🏢 Katta kompaniyalar uchun:
+
+• Bir nechta serverlarni kompleks audit qilish
+• Cloud Security Audit
+• Network Security Assessment
+• Active Directory Security
+• SIEM/SOC integratsiyasi
+• 24/7 monitoring
+• Incident Response
+• Vulnerability Management
+• Security Policy ishlab chiqish
+• Risk Assessment
+• Red Team / Purple Team mashg‘ulotlari
+
+💰 Enterprise loyihalar: 20 000 000 – 100 000 000+ so‘m
+
+Narx infratuzilma hajmi, serverlar soni, IP manzillar, domenlar, xodimlar soni va ish hajmiga qarab individual belgilanadi.3\n\n"
         "📌 Ma'lumotlar tez orada qo‘shiladi.",
         parse_mode="HTML"
     )
