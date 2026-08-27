@@ -209,7 +209,7 @@ async def services(
     
     await update.message.reply_text(
         "🛠 <b>Xizmatlar</b>\n\n"
-        "1️⃣ [27.08.2026 13:21] Syber: 🛡️ PROFESSIONAL SERVER & CYBER SECURITY XIZMATLARI
+        "1️⃣  🛡️ PROFESSIONAL SERVER & CYBER SECURITY XIZMATLARI
 
 Serveringiz, VPS, Cloud yoki korporativ infratuzilmangizni professional darajada himoyalashni istaysizmi?
 
@@ -551,7 +551,7 @@ To‘g‘ri himoya — server, tarmoq, dastur, foydalanuvchi va monitoringni bir
 
 📩 Serveringiz xavfsizligini tekshirtirish uchun murojaat qiling.
 
-⚠️ Barcha xavfsizlik testlari faqat tizim egasining rasmiy ruxsati bilan amalga oshiriladi.1\n"
+⚠️ Barcha xavfsizlik testlari faqat tizim egasining rasmiy ruxsati bilan amalga oshiriladi. 1\\n"
         "📌 Ma'lumotlar tez orada qo‘shiladi.",
         parse_mode="HTML"
     )
