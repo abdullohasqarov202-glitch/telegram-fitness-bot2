@@ -446,7 +446,7 @@ va ish hajmiga qarab individual belgilanadi.
 ━━━━━━━━━━━━━━━━━━
 
 📩 Batafsil ma’lumot uchun:
-👤 Admin bilan bog‘laning.
+👤 Admin bilan bog‘laning @Moonnadmin
 """
 
     await update.message.reply_text(
