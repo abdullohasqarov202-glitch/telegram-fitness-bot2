@@ -504,7 +504,7 @@ async def admin(
             [
                 InlineKeyboardButton(
                     "👤 Admin bilan bog‘lanish",
-                    url="https://t.me/Asqarov_0207"
+                    url="https://t.me/Moonnadmin"
                 )
             ]
 
