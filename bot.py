@@ -209,10 +209,10 @@ async def services(
     
     await update.message.reply_text(
         "🛠 <b>Xizmatlar</b>\n\n"
-        "1️⃣   # ============================================================
+        "1️⃣  
 
 
-XIZMATLAR_1 = """🛡️ PROFESSIONAL SERVER & CYBER SECURITY XIZMATLARI
+XIZMATLAR_1 ="""🛡️ PROFESSIONAL SERVER & CYBER SECURITY XIZMATLARI
 
 Serveringiz, VPS, Cloud yoki korporativ infratuzilmangizni professional darajada himoyalashni istaysizmi?
 
