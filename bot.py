@@ -209,7 +209,7 @@ async def services(
     
     await update.message.reply_text(
         "🛠 <b>Xizmatlar</b>\n\n"
-        "1️⃣  # ============================================================
+        "1️⃣# ============================================================
 # TUZATILGAN KOD — 212-qator o'rniga shu qismni qo'ying
 # ============================================================
 # MUHIM: Telegram xabar limiti — 4096 belgi.
