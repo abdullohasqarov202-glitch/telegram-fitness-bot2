@@ -209,15 +209,7 @@ async def services(
     
     await update.message.reply_text(
         "🛠 <b>Xizmatlar</b>\n\n"
-        "1️⃣# ============================================================
-# TUZATILGAN KOD — 212-qator o'rniga shu qismni qo'ying
-# ============================================================
-# MUHIM: Telegram xabar limiti — 4096 belgi.
-# Shu matn bitta xabarga sig'maydi, shuning uchun 2 qismga bo'lindi.
-# Ikkalasi ham triple-quote (""") bilan yozilgan — shuning uchun
-# ichida qancha qator bo'lsa ham, sintaksis xatosi chiqmaydi.
-
-XIZMATLAR_1 =🛡️ PROFESSIONAL SERVER & CYBER SECURITY XIZMATLARI
+        "1️⃣1 🛡️ PROFESSIONAL SERVER & CYBER SECURITY XIZMATLARI
 
 Serveringiz, VPS, Cloud yoki korporativ infratuzilmangizni professional darajada himoyalashni istaysizmi?
 
@@ -291,10 +283,8 @@ Narx infratuzilma hajmi, serverlar soni, IP manzillar, domenlar, xodimlar soni v
 
 🔒 SERVERINGIZNI HUJUMDAN KEYIN EMAS, HUJUMDAN OLDIN HIMOYALANG!
 
-📩 Xizmat buyurtma qilish uchun Telegram orqali murojaat qiling."""
-
-
-XIZMATLAR_2 = """🛡️ SERVER VA KIBERXAVFSIZLIK XIZMATLARI (batafsil)
+📩 Xizmat buyurtma qilish uchun admin orqali murojaat qiling.\\n"
+   "1️⃣1  🛡️ SERVER VA KIBERXAVFSIZLIK XIZMATLARI (batafsil)
 
 ━━━━━━━━━━━━━━
 🔰 1. SERVER SECURITY AUDIT — 500 000 – 2 000 000 so'm
@@ -364,19 +354,7 @@ To'g'ri himoya — server, tarmoq, dastur, foydalanuvchi va monitoringni birgali
 
 📩 Serveringiz xavfsizligini tekshirtirish uchun murojaat qiling.
 
-⚠️ Barcha xavfsizlik testlari faqat tizim egasining rasmiy ruxsati bilan amalga oshiriladi.
-
-
-# ============================================================
-# Botda ishlatish (masalan handler ichida):
-# ============================================================
-#
-# async def send_services(update, context):
-#     await update.message.reply_text(XIZMATLAR_1)
-#     await update.message.reply_text(XIZMATLAR_2)
-#
-# Ikkita alohida reply_text chaqiruvi kerak, chunki bitta
-# xabarga ikkala matn sig'maydi (4096 belgidan oshadi).1\\n"
+⚠️ Barcha xavfsizlik testlari faqat tizim egasining rasmiy ruxsati bilan amalga oshiriladi. \\n"
         "📌 Ma'lumotlar tez orada qo‘shiladi.",
         parse_mode="HTML"
     )
