@@ -209,10 +209,15 @@ async def services(
     
     await update.message.reply_text(
         "🛠 <b>Xizmatlar</b>\n\n"
-        "1️⃣  
+        "1️⃣  # ============================================================
+# TUZATILGAN KOD — 212-qator o'rniga shu qismni qo'ying
+# ============================================================
+# MUHIM: Telegram xabar limiti — 4096 belgi.
+# Shu matn bitta xabarga sig'maydi, shuning uchun 2 qismga bo'lindi.
+# Ikkalasi ham triple-quote (""") bilan yozilgan — shuning uchun
+# ichida qancha qator bo'lsa ham, sintaksis xatosi chiqmaydi.
 
-
-XIZMATLAR_1 ="""🛡️ PROFESSIONAL SERVER & CYBER SECURITY XIZMATLARI
+XIZMATLAR_1 = """🛡️ PROFESSIONAL SERVER & CYBER SECURITY XIZMATLARI
 
 Serveringiz, VPS, Cloud yoki korporativ infratuzilmangizni professional darajada himoyalashni istaysizmi?
 
